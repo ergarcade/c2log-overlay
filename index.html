@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>c2log-overlay - Generate movie overlay from Concept2 log file</title>
+
+        <script src="./js/jquery-3.4.1.min.js"></script>
+        <script src="./js/papaparse.min.js"></script>
+        <script src="./js/app.js"></script>
+
+        <style type="text/css">
+        body {
+            width: 75%;
+            margin: auto;
+        }
+        .clear {
+            clear: both;
+        }
+        #dropzone {
+            background: #ccc;
+            height: 4em;
+        }
+        </style>
+    </head>
+
+    <body>
+        <!-- do stuff and perform conversion -->
+        <div id="options">
+            <fieldset>
+                <legend>Options</legend>
+            </fieldset>
+        </div>
+
+        <!-- loader / uploader -->
+        <div id="file-upload">
+            <fieldset>
+                <legend>File upload</legend>
+                <div id="dropzone">
+                    <p>Drop a file here to convert</p>
+                </div>
+            </fieldset>
+        </div>
+
+        <div id="log-link">
+            <fieldset>
+                <legend>C2 workout URL</legend>
+                <p>
+                You can fetch a file directly from your Concept2 account. Go to
+                <a href="http://log.concept2.com">log.concent2.com</a>, choose your
+                workout, scroll to the bottom then right click on the
+                <strong>Download as CSV</strong> and choose <strong>Copy Link Address</strong>.
+                Paste that link in the box below and click <strong>Go</strong>.
+                </p>
+
+                <input id="c2log-url" size="60" disabled></input>
+                <button disabled>Go</button>
+            </fieldset>
+        </div>
+
+        <!-- dump debug / log messages -->
+        <div id="status">
+            <fieldset>
+                <legend>Status</legend>
+                <p></p>
+            </fieldset>
+        </div>
+
+        <!-- results here -->
+        <div id="output" class="clear">
+            <fieldset>
+                <legend>Output files</legend>
+            </fieldset>
+        </div>
+    </body>
+</html>

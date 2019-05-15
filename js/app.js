@@ -50,13 +50,18 @@ function parseFile(file) {
                 return;
             }
 
+            console.log('starting new file');
+            if (results.data.length-1 > 0) {
+                console.log('write zero frame hold length ' + results.data[1][C2_TIME]);
+            }
+
             for (var i = 1; i < results.data.length-1; i++) { /* line 0 is header; ignore */
                 var hold_time;
 
                 if (i == results.data.length-2) {
                     /*
                      * If we're on the last line, we can't get any more
-                     * lines. End with same arbitrary hold time as per
+                     * frames. End with same arbitrary hold time as per
                      * interval gap.
                      */
                     hold_time = INTERVAL_GAP;
@@ -75,13 +80,19 @@ function parseFile(file) {
                     /* XXX construct frame */
                     hold_time = INTERVAL_GAP;
 
-                    /* XXX write frame with hold time of hold_time */
+                    /* XXX write frame with hold time according to end of interval */
                     console.log('write frame ' + i + ' with hold_time ' + hold_time);
 
                     /* XXX close this file */
                     console.log('end file with line ' + i);
 
                     /* XXX open new file */
+                    console.log('open new file');
+
+                    /* XXX write zero frame with hold time of first line of next interval */
+                    if (i+1 < results.data.length-2) {
+                        console.log('write zero frame hold length ' + results.data[i+1][C2_TIME]);
+                    }
 
                 } else {
                     hold_time = results.data[i+1][C2_TIME] - results.data[i][C2_TIME];

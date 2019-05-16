@@ -7,6 +7,7 @@
 
         <script src="./js/jquery-3.4.1.min.js"></script>
         <script src="./js/papaparse.min.js"></script>
+        <script src="./js/moment.js"></script>
         <script src="./js/app.js"></script>
 
         <style type="text/css">
@@ -47,7 +48,7 @@
                 <legend>C2 workout URL</legend>
                 <p>
                 You can fetch a file directly from your Concept2 account. Go to
-                <a href="http://log.concept2.com">log.concent2.com</a>, choose your
+                <a href="http://log.concept2.com">log.concept2.com</a>, choose your
                 workout, scroll to the bottom then right click on the
                 <strong>Download as CSV</strong> and choose <strong>Copy Link Address</strong>.
                 Paste that link in the box below and click <strong>Go</strong>.
@@ -70,6 +71,8 @@
         <div id="output" class="clear">
             <fieldset>
                 <legend>Output files</legend>
+                <div id="movies">
+                </div>
             </fieldset>
         </div>
     </body>

@@ -37,6 +37,19 @@ const INTERVAL_GAP = 5;    /* seconds between "intervals" */
 const MOVIE_WIDTH = 220;
 const MOVIE_HEIGHT = 180;
 
+var video;
+
+/*
+ * Get requestAnimationFrame().
+ */
+(function() {
+  var requestAnimationFrame = window.requestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.msRequestAnimationFrame;
+  window.requestAnimationFrame = requestAnimationFrame;
+})();
+
 /*
  */
 function setStatus(msg) {
@@ -123,9 +136,7 @@ function writeFrame(index, hold_time, data) {
             ctx.fillText(d.watts + ' watts', 10, 140);
             ctx.fillText(d.cals_per_hour + ' cals/hr',   10, 170);
 
-            /*
-             * XXX store to movie.
-             */
+            video.add(ctx, hold_time);
         }
     }
 }
@@ -135,7 +146,24 @@ function startMovie(idx) {
 
     $("#movies").append('<canvas id="movie-' + idx + '" ' +
         ' width="' + MOVIE_WIDTH + '"' +
-        ' height="' + MOVIE_HEIGHT + '"></canvas><br />');
+        ' height="' + MOVIE_HEIGHT + '"></canvas>');
+    $("#movies").append('<video id="video-' + idx + '" ' +
+        ' width="' + MOVIE_WIDTH + '"' +
+        ' height="' + MOVIE_HEIGHT + '" controls autoplay loop></video>');
+
+    $("#movies").append('<a class="download" id="download-movie-' + idx + '"' +
+        'href="movie-' + idx + '.webm">Download</a><br />');
+
+    video = new Whammy.Video();
+}
+
+function endMovie(idx) {
+    video.compile(false, function(output) {
+        var url = webkitURL.createObjectURL(output);
+
+        document.getElementById('video-' + idx).src = url;
+        document.getElementById('download-movie-' + idx).href = url;
+    });
 }
 
 /*
@@ -179,6 +207,7 @@ function parseFile(file) {
                     hold_time = INTERVAL_GAP;
                     writeFrame(index, hold_time, results.data[i]);
 
+                    endMovie(index);
                     index++;
                     startMovie(index);
 

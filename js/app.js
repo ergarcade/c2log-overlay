@@ -34,7 +34,7 @@ const INTERVAL_GAP = 5;    /* seconds between "intervals" */
 /*
  * Output movie dimensions.
  */
-const MOVIE_WIDTH = 320;
+const MOVIE_WIDTH = 220;
 const MOVIE_HEIGHT = 180;
 
 /*
@@ -53,7 +53,7 @@ function printable_time(t) {
     return moment.utc(t*1000).format("HH:mm:ss");
 }
 function printable_distance(d) {
-    return d.toLocaleString();
+    return (Math.trunc(d)).toLocaleString();
 }
 function printable_pace(p) {
     return moment.utc(p*1000).format("m:ss.S");
@@ -106,21 +106,28 @@ function writeFrame(index, hold_time, data) {
     if (canvas.getContext) {
         var ctx = canvas.getContext('2d');
 
-        ctx.clearRect(0, 0, MOVIE_WIDTH, MOVIE_HEIGHT);
-        ctx.font = '12px sans';
+        if (ctx) {
+            ctx.clearRect(0, 0, MOVIE_WIDTH, MOVIE_HEIGHT);
+            ctx.font = 'bold 24px arial';
 
-        ctx.fillText('Time: ' + d.time,                 1, 25);
-        ctx.fillText('Distance: ' + d.distance,         1, 50);
-        ctx.fillText('Pace: ' + d.pace,                 1, 75);
-        ctx.fillText('Watts: ' + d.watts,               1, 100);
-        ctx.fillText('Cals/hr: ' + d.cals_per_hour,     1, 125);
-        ctx.fillText('Stroke rate: ' + d.stroke_rate,   1, 150);
-        ctx.fillText('Heart rate: ' + d.heart_rate,     1, 175);
+            ctx.fillText(d.time,                10, 25);
+            ctx.fillText(d.stroke_rate + 's/m', 140, 25);
+
+            ctx.font = 'bold 64px arial';
+            ctx.fillText(d.pace,                10, 80);
+
+            ctx.font = 'bold 24px arial';
+            ctx.fillText(d.distance + 'm',      10, 110);
+            ctx.fillText(d.heart_rate + String.fromCharCode(0x2764), 140, 110);
+
+            ctx.fillText(d.watts + ' watts', 10, 140);
+            ctx.fillText(d.cals_per_hour + ' cals/hr',   10, 170);
+
+            /*
+             * XXX store to movie.
+             */
+        }
     }
-
-    /*
-     * XXX store to movie.
-     */
 }
 
 function startMovie(idx) {
@@ -128,7 +135,7 @@ function startMovie(idx) {
 
     $("#movies").append('<canvas id="movie-' + idx + '" ' +
         ' width="' + MOVIE_WIDTH + '"' +
-        ' height="' + MOVIE_HEIGHT + '"></canvas>');
+        ' height="' + MOVIE_HEIGHT + '"></canvas><br />');
 }
 
 /*
@@ -162,54 +169,33 @@ function parseFile(file) {
                      * interval gap.
                      */
                     hold_time = INTERVAL_GAP;
-
-                    /* XXX write final frame */
-                    //console.log('write final frame line ' + i + ' with hold_time ' + hold_time);
                     writeFrame(index, hold_time, results.data[i]);
-
-                    //console.log('end file with line ' + i);
                     break;
                 } else if (results.data[i+1][C2_TIME] < results.data[i][C2_TIME]) {
                     /*
                      * This is the end of an interval.
                      */
 
-                    /* XXX construct frame */
                     hold_time = INTERVAL_GAP;
-
-                    /* XXX write frame with hold time according to end of interval */
-                    //console.log('write frame ' + i + ' with hold_time ' + hold_time);
                     writeFrame(index, hold_time, results.data[i]);
 
-                    /* XXX close this file */
-                    //console.log('end file with line ' + i);
                     index++;
-
-                    /* XXX open new file */
-                    //console.log('open new file');
                     startMovie(index);
 
-                    /* XXX write zero frame with hold time of first line of next interval */
                     if (i+1 < results.data.length-2) {
-                        //console.log('write zero frame hold length ' + results.data[i+1][C2_TIME]);
                         writeFrame(index, hold_time);
                     }
 
                 } else {
                     hold_time = results.data[i+1][C2_TIME] - results.data[i][C2_TIME];
-
-                    //console.log('write frame ' + i + ' with hold_time ' + hold_time);
-
-                    /* XXX write frame with hold time of hold_time */
                     writeFrame(index, hold_time, results.data[i]);
                 }
             }
 
             setStatus('<strong>Parse complete.</strong>');
-/*
-            console.log(results);
-            console.log(results.data.length-1);
-            */
+            /*
+             * XXX create movie, set download link.
+             */
         }
     });
 }
@@ -224,7 +210,6 @@ function handleDrop(evt) {
     evt.stopPropagation();
     evt.preventDefault();
 
-    console.log(evt.dataTransfer.files[0].name);
     clearMovies();
     parseFile(evt.dataTransfer.files[0]);
 }

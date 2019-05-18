@@ -34,7 +34,7 @@ const INTERVAL_GAP = 5;    /* seconds between "intervals" */
 /*
  * Output movie dimensions.
  */
-const MOVIE_WIDTH = 220;
+const MOVIE_WIDTH = 320;
 const MOVIE_HEIGHT = 180;
 
 var video;              /* the current video */
@@ -126,21 +126,25 @@ function writeFrame(index, hold_time, _data) {
         var ctx = canvas.getContext('2d');
 
         if (ctx) {
-            ctx.clearRect(0, 0, MOVIE_WIDTH, MOVIE_HEIGHT);
+            //ctx.clearRect(0, 0, MOVIE_WIDTH, MOVIE_HEIGHT);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, MOVIE_WIDTH, MOVIE_HEIGHT);
+            ctx.fillStyle = 'black';
+
             ctx.font = 'bold 24px arial';
 
-            ctx.fillText(d.time,                10, 25);
-            ctx.fillText(d.stroke_rate + 's/m', 140, 25);
+            ctx.fillText(d.time,                65, 25);
+            ctx.fillText(d.stroke_rate + 's/m', 170, 25);
 
             ctx.font = 'bold 64px arial';
-            ctx.fillText(d.pace,                10, 80);
+            ctx.fillText(d.pace,                65, 80);
 
             ctx.font = 'bold 24px arial';
-            ctx.fillText(d.distance + 'm',      10, 110);
-            ctx.fillText(d.heart_rate + String.fromCharCode(0x2764), 140, 110);
+            ctx.fillText(d.distance + 'm',      65, 110);
+            ctx.fillText(d.heart_rate + String.fromCharCode(0x2764), 190, 110);
 
-            ctx.fillText(d.watts + ' watts', 10, 140);
-            ctx.fillText(d.cals_per_hour + ' cals/hr',   10, 170);
+            ctx.fillText(d.watts + ' watts',    105, 140);
+            ctx.fillText(d.cals_per_hour + ' cals/hr',   85, 170);
 
             video.add(ctx, hold_time * 1000);
         }
@@ -155,32 +159,46 @@ function startMovie(idx) {
         ' height="' + MOVIE_HEIGHT + '"></canvas>');
     $("#movies").append('<video id="video-' + idx + '" ' +
         ' width="' + MOVIE_WIDTH + '"' +
-        ' height="' + MOVIE_HEIGHT + '" controls autoplay loop></video>');
-
-    $("#movies").append('<a class="download" id="download-video-' + idx + '"' +
-        'href="movie-' + idx + '.webm">Download</a><br />');
+        ' height="' + MOVIE_HEIGHT + '" controls></video><br />');
 
     video = new Whammy.Video();
+
+    $("#progress").attr('max', data.data.length-2);
 }
 
 function endMovie() {
-    setStatus('Compiling movie');
+    setStatus('Compiling movie - might take a while, please wait...');
 
     video.compile(false, function(output) {
         var url = webkitURL.createObjectURL(output);
 
         document.getElementById('video-' + interval).src = url;
-        document.getElementById('download-video-' + interval).href = url;
+        document.getElementById('video-' + interval).download = 'video-' + interval;
 
         setStatus('Movie compilation complete.');
+
+        /*
+         * XXX ugh; check if we're done.
+         */
+        if (line == data.data.length-2) {
+            requestAnimationFrame(finishVideos);
+        } else {
+            interval++;
+            startMovie(interval);
+            writeFrame(interval, INTERVAL_GAP);
+            requestAnimationFrame(generateFrame);
+        }
     });
 }
 
 function finishVideos() {
     setStatus("Movie generation complete.");
+    $("#progress").val(0);
 }
 
 function generateFrame() {
+    $("#progress").val($("progress").val()+1);
+
     if (line == 1) {
         startMovie(interval);
 
@@ -197,11 +215,7 @@ function generateFrame() {
          */
         hold_time = INTERVAL_GAP;
         writeFrame(interval, hold_time, data.data[line]);
-        /*
         endMovie();
-        requestAnimationFrame(finishVideos);
-        */
-        requestAnimationFrame(endMovie);
 
     } else if (data.data[line+1][C2_TIME] < data.data[line][C2_TIME]) {
         /*
@@ -213,16 +227,6 @@ function generateFrame() {
         line++;
 
         endMovie();
-        interval++;
-        startMovie(interval);
-
-        if (line+1 < data.data.length-2) {
-            /*
-             * Start next interval with zero frame.
-             */
-            writeFrame(interval, hold_time);
-            requestAnimationFrame(generateFrame);
-        }
     } else {
         hold_time = data.data[line+1][C2_TIME] - data.data[line][C2_TIME];
         writeFrame(interval, hold_time, data.data[line]);

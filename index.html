@@ -26,17 +26,13 @@
         canvas {
             border: 1px solid #000;
         }
+        #log-link {         /* TODO */
+            display: none;
+        }
         </style>
     </head>
 
     <body>
-        <!-- do stuff and perform conversion -->
-        <div id="options">
-            <fieldset>
-                <legend>Options</legend>
-            </fieldset>
-        </div>
-
         <!-- loader / uploader -->
         <div id="file-upload">
             <fieldset>
@@ -68,6 +64,7 @@
             <fieldset>
                 <legend>Status</legend>
                 <p></p>
+                <progress id="progress" value="0" max="60" min="0" style="min-width: 100%;"></progress>
             </fieldset>
         </div>
 

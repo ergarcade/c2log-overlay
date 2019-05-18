@@ -37,7 +37,11 @@ const INTERVAL_GAP = 5;    /* seconds between "intervals" */
 const MOVIE_WIDTH = 220;
 const MOVIE_HEIGHT = 180;
 
-var video;
+var video;              /* the current video */
+var interval = 1;       /* current interval */
+var data = null;        /* csv data as parsed by Papa.parse in parseFile() */
+var line = 1;           /* current line we're writing */
+var hold_time = 0;      /* time to hold current line */
 
 /*
  * Get requestAnimationFrame().
@@ -84,32 +88,34 @@ function printable_heart_rate(hr) {
     return hr;
 }
 
-function writeFrame(index, hold_time, data) {
+function writeFrame(index, hold_time, _data) {
     var d = {};
 
-    if (!data) {
-        data = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
-    }
+    setStatus('Writing frame ' + line);
 
-    /*
-     * C2 .csv files have nulls in some places; sanitise.
-     */
-    for (var i = 0; i < C2_MAX_COLS; i++) {
-        if (!data[i]) {
-            data[i] = 0;
+    if (!_data) {
+        _data = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
+    } else {
+        /*
+         * C2 .csv files have nulls in some places; sanitise.
+         */
+        for (var i = 0; i < C2_MAX_COLS; i++) {
+            if (!_data[i]) {
+                _data[i] = 0;
+            }
         }
     }
 
     /*
      * Convert to printables.
      */
-    d.time          = printable_time(data[C2_TIME]);
-    d.distance      = printable_distance(data[C2_DISTANCE]);
-    d.pace          = printable_pace(data[C2_PACE]);
-    d.watts         = printable_watts(data[C2_WATTS]);
-    d.cals_per_hour = printable_cals_per_hour(data[C2_CAL_PER_HOUR]);
-    d.stroke_rate   = printable_stroke_rate(data[C2_STROKE_RATE]);
-    d.heart_rate    = printable_heart_rate(data[C2_HEART_RATE]);
+    d.time          = printable_time(_data[C2_TIME]);
+    d.distance      = printable_distance(_data[C2_DISTANCE]);
+    d.pace          = printable_pace(_data[C2_PACE]);
+    d.watts         = printable_watts(_data[C2_WATTS]);
+    d.cals_per_hour = printable_cals_per_hour(_data[C2_CAL_PER_HOUR]);
+    d.stroke_rate   = printable_stroke_rate(_data[C2_STROKE_RATE]);
+    d.heart_rate    = printable_heart_rate(_data[C2_HEART_RATE]);
 
     /*
      * Write to canvas.
@@ -136,7 +142,7 @@ function writeFrame(index, hold_time, data) {
             ctx.fillText(d.watts + ' watts', 10, 140);
             ctx.fillText(d.cals_per_hour + ' cals/hr',   10, 170);
 
-            video.add(ctx, hold_time);
+            video.add(ctx, hold_time * 1000);
         }
     }
 }
@@ -151,19 +157,79 @@ function startMovie(idx) {
         ' width="' + MOVIE_WIDTH + '"' +
         ' height="' + MOVIE_HEIGHT + '" controls autoplay loop></video>');
 
-    $("#movies").append('<a class="download" id="download-movie-' + idx + '"' +
+    $("#movies").append('<a class="download" id="download-video-' + idx + '"' +
         'href="movie-' + idx + '.webm">Download</a><br />');
 
     video = new Whammy.Video();
 }
 
-function endMovie(idx) {
+function endMovie() {
+    setStatus('Compiling movie');
+
     video.compile(false, function(output) {
         var url = webkitURL.createObjectURL(output);
 
-        document.getElementById('video-' + idx).src = url;
-        document.getElementById('download-movie-' + idx).href = url;
+        document.getElementById('video-' + interval).src = url;
+        document.getElementById('download-video-' + interval).href = url;
+
+        setStatus('Movie compilation complete.');
     });
+}
+
+function finishVideos() {
+    setStatus("Movie generation complete.");
+}
+
+function generateFrame() {
+    if (line == 1) {
+        startMovie(interval);
+
+        writeFrame(interval, data.data[1][C2_TIME]);
+        line++;
+
+        requestAnimationFrame(generateFrame);
+
+    } else if (line == data.data.length-2) {
+        /*
+         * If we're on the last line, we can't get any more
+         * frames. End with same arbitrary hold time as per
+         * interval gap.
+         */
+        hold_time = INTERVAL_GAP;
+        writeFrame(interval, hold_time, data.data[line]);
+        /*
+        endMovie();
+        requestAnimationFrame(finishVideos);
+        */
+        requestAnimationFrame(endMovie);
+
+    } else if (data.data[line+1][C2_TIME] < data.data[line][C2_TIME]) {
+        /*
+         * This is the end of an interval.
+         */
+
+        hold_time = INTERVAL_GAP;
+        writeFrame(interval, hold_time, data.data[line]);
+        line++;
+
+        endMovie();
+        interval++;
+        startMovie(interval);
+
+        if (line+1 < data.data.length-2) {
+            /*
+             * Start next interval with zero frame.
+             */
+            writeFrame(interval, hold_time);
+            requestAnimationFrame(generateFrame);
+        }
+    } else {
+        hold_time = data.data[line+1][C2_TIME] - data.data[line][C2_TIME];
+        writeFrame(interval, hold_time, data.data[line]);
+        line++;
+
+        requestAnimationFrame(generateFrame);
+    }
 }
 
 /*
@@ -173,6 +239,7 @@ function parseFile(file) {
 
     Papa.parse(file, {
         dynamicTyping: true,
+
         complete: function(results) {
             if (results.errors.length) {
                 setStatus('<strong>Errors in input file; check console.</strong>');
@@ -180,51 +247,15 @@ function parseFile(file) {
                 return;
             }
 
-            var index = 1;
-
-            startMovie(index);
-            if (results.data.length-1 > 0) {
-                writeFrame(index, results.data[1][C2_TIME]);
-            }
-
-            for (var i = 1; i < results.data.length-1; i++) { /* line 0 is header; ignore */
-                var hold_time;
-
-                if (i == results.data.length-2) {
-                    /*
-                     * If we're on the last line, we can't get any more
-                     * frames. End with same arbitrary hold time as per
-                     * interval gap.
-                     */
-                    hold_time = INTERVAL_GAP;
-                    writeFrame(index, hold_time, results.data[i]);
-                    break;
-                } else if (results.data[i+1][C2_TIME] < results.data[i][C2_TIME]) {
-                    /*
-                     * This is the end of an interval.
-                     */
-
-                    hold_time = INTERVAL_GAP;
-                    writeFrame(index, hold_time, results.data[i]);
-
-                    endMovie(index);
-                    index++;
-                    startMovie(index);
-
-                    if (i+1 < results.data.length-2) {
-                        writeFrame(index, hold_time);
-                    }
-
-                } else {
-                    hold_time = results.data[i+1][C2_TIME] - results.data[i][C2_TIME];
-                    writeFrame(index, hold_time, results.data[i]);
-                }
-            }
-
-            setStatus('<strong>Parse complete.</strong>');
             /*
-             * XXX create movie, set download link.
+             * Setup state.
              */
+            interval = 1;
+            data = results;
+            line = 1;
+            hold_time = 0;
+
+            generateFrame();
         }
     });
 }

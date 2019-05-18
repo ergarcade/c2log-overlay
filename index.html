@@ -13,29 +13,54 @@
 
         <style type="text/css">
         body {
-            width: 75%;
+            width: 700px;
             margin: auto;
         }
         .clear {
             clear: both;
         }
+        #file-upload, #status {
+            width: 50%;
+            float: left;
+        }
+        #file-upload p {
+            margin-top: 0;
+        }
         #dropzone {
             background: #ccc;
-            height: 4em;
+            height: 4.5em;
         }
         canvas {
-            border: 1px solid #000;
+        }
+        dt {
+            font-weight: bold;
+        }
+        dd {
+            margin-bottom: 1em;
+        }
+
+        iframe {
+            width: 100%;
+            margin: auto;
         }
         </style>
     </head>
 
     <body>
+        <h1>Concept2 .csv log file movie maker</h1>
+        <p>
+        This application makes a movie from the data recorded by ErgData from the
+        PM monitor of your Concept2 rower or SkiErg suitable for overlaying on a video.
+        </p>
+
+        <iframe width="420" height="315" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
+
         <!-- loader / uploader -->
         <div id="file-upload">
             <fieldset>
                 <legend>File upload</legend>
                 <div id="dropzone">
-                    <p>Drop a file here to convert</p>
+                    <p>Drop a C2 .csv logfile here to convert</p>
                 </div>
             </fieldset>
         </div>
@@ -57,5 +82,114 @@
                 </div>
             </fieldset>
         </div>
+
+        <h2>Use cases</h2>
+        <ul>
+            <li>Coach wants to provide technique video <strong>and</strong>
+                pace / stroke / distance / time information.</li>
+            <li>Athlete wants to compare old and recent technique sessions
+                <strong>simultaneously</strong> with pace / stroke / distance
+                / time information.</li>
+        </ul>
+
+        <h2>Requires</h2>
+        <ul>
+            <li>Chrome web browser (or other Canvas- and WebKit-enabled browser).</li>
+            <li>A logfile from your <a href="https://log.concept2.com">Concept2 Online logbook</a>
+                account. Must be uploaded via
+                <a href="https://www.concept2.com/service/software/ergdata">ErgData</a>.</li>
+            <li>Optional: A tool to convert <strong>.webm</strong> files to <strong>.mp4</strong> or other
+                video format. Have a <a href="https://www.google.com/search?q=webm+to+mp4">Google</a>,
+                or install and learn <a href="https://ffmpeg.org/">ffmpeg</a>.</li>
+            <li>Optional: video editing tool of your choice.</li>
+            <li>Optional: video of yourself / athlete rowing or skiing.</li>
+        </ul>
+
+        <h2>Usage</h2>
+        <ul>
+            <li><a href="https://www.concept2.com/service/software/ergdata/how-to-use">
+                    Upload a rowing / skiing session using ErgData</a>.</li>
+            <li>Download that session from the <a href="https://log.concept2.com">logbook</a>
+                as a <strong>CSV</strong> file (button at the bottom of the page).</li>
+            <li>Drag and drop that .csv file on the grey rectangle above.</li>
+            <li>Be patient. Wait until the status says <strong>Movie generation
+                complete.</strong></li>
+            <li>Two <i>faux</i>-monitors will appear. Click the three dots from
+                the one on the right and choose <strong>Download</strong>.</li>
+            <li>Import that file into your video editing software, or if the format
+                isn't supported, use your chosen file conversion software to turn
+                the <strong>.webm</strong> file into a <strong>.mp4</strong> or
+                similar for your movie software.</li>
+            <li>Import the resulting video into your video editing software
+                and go for gold.</li>
+        </ul>
+
+        <h2>FAQ</h2>
+        <dl>
+            <dt>How can I see other variables, like average pace?</dt>
+            <dd>The Concept2 format for .csv is limited to elapsed time,
+                distance, instantaneous pace, watts and cals/hr.</dd>
+
+            <dt>But you can calculate average pace (and others) from those variables!</dt>
+            <dd>Yup, this is on the list of things to fix.</dd>
+
+            <dt>The output video format sucks. Can you change it?</dt>
+            <dd>Yup, this is on the list of things to fix. If you have suggestions
+                please pass them along.</dd>
+
+            <dt>Does this handle intervals?</dt>
+            <dd>Yup.</dd>
+
+            <dt>It generates multiple movies for interval workouts!</dt>
+            <dd>Yup. The Concept2 .csv format doesn't include rest periods, so
+                the output movie is split into parts for easier overlaying.</dd>
+
+            <dt>Why are there pauses in the movie at the start of each interval?</dt>
+            <dd>Purely for allowing you to better sync the overlay in your editing
+                software.</dd>
+
+            <dt>Why does this miss the first few and last few seconds of an interval?</dt>
+            <dd>The data provided on the Concept2 Online logbook for a session appears to
+                only include data <strong>on the stroke</strong>. This means the
+                <i>first stroke and the end of the workout</i> are typically missed.</dd>
+
+            <dt>The time and distance don't increase smoothly! WTF?!?</dt>
+            <dd>Yup; as stated above the Online logbook data appears to only include
+                data <strong>on the stroke</strong>, not between strokes.</dd>
+
+            <dt>So any pointers on how to sync this properly over video of me rowing?</dt>
+            <dd>Yup:
+                <ul>
+                    <li>The frame where the numbers change from zero should be synced
+                        to match the <i>end of your first (possibly <strong>second</strong>l
+                        actual stroke</i>.</li>
+                    <li>The last frame of of numbers should be synced to
+                        match the <i>end of your last actual stroke</i>.</li>
+                </ul>
+                Try syncing at the end of the overlay movie first, then lock in the
+                start stroke. Note that you may need to stretch either your video or
+                the overlay video to get <i>100% accurate overlay goodness</i>. But
+                as a savvy video editing connoisseur, you already know that.
+            </dd>
+
+            <dt>This doesn't work on my phone!</dt>
+            <dd>Not indended for phone use; try a computer instead.</dd>
+
+            <dt>This doesn't work on my computer!</dt>
+            <dd>This application has been tested and works using the latest version
+            of the <a href="https://chrome.google.com">Chrome web browser</a> on
+            <a href="https://www.apple.com/au/macos/mojave/">Mac OS X</a>. YMMV on
+            other platforms.</dd>
+
+            <dt>The filenames of the movies are gibberish!</dt>
+            <dd>Yup, this is on the list of things to fix.</dd>
+
+            <dt>This page looks like balls!</dt>
+            <dd>Yup, this is on the list of things to fix.</dd>
+
+            <dt>I want to yell at you! Where do I find you?</dt>
+            <dd>You can <a href="https://www.reddit.com/user/angrytongan">yell at me here</a>.</dd>
+        </dd>
+
     </body>
 </html>

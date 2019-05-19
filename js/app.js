@@ -40,7 +40,7 @@ const MOVIE_HEIGHT = 180;
 var video;              /* the current video */
 var interval = 1;       /* current interval */
 var data = null;        /* csv data as parsed by Papa.parse in parseFile() */
-var line = 1;           /* current line we're writing */
+var line = 0;           /* current line we're writing */
 var hold_time = 0;      /* time to hold current line */
 
 /*
@@ -199,7 +199,7 @@ function finishVideos() {
 function generateFrame() {
     $("#progress").val($("progress").val()+1);
 
-    if (line == 1) {
+    if (line == 0) {
         startMovie(interval);
 
         writeFrame(interval, data.data[1][C2_TIME]);
@@ -256,7 +256,7 @@ function parseFile(file) {
              */
             interval = 1;
             data = results;
-            line = 1;
+            line = 0;
             hold_time = 0;
 
             generateFrame();

@@ -39,6 +39,12 @@
             margin-bottom: 1em;
         }
 
+        #demo-movie p {
+            text-align: center;
+            font-style: italic;
+            margin-top: 0;
+        }
+
         iframe {
             width: 100%;
             margin: auto;
@@ -47,13 +53,17 @@
     </head>
 
     <body>
-        <h1>Concept2 .csv log file movie maker</h1>
+        <h1>Concept2 .csv log file overlay maker</h1>
         <p>
-        This application makes a movie from the data recorded by ErgData from the
-        PM monitor of your Concept2 rower or SkiErg suitable for overlaying on a video.
+        Simple, quick and dirty application that makes a movie from the data
+        recorded by ErgData from the PM monitor of your Concept2 rower or
+        SkiErg suitable for overlaying on a video. (almost) All done in-browser.
         </p>
 
-        <iframe width="420" height="315" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
+        <div id="demo-movie">
+            <iframe height="315" src="https://www.youtube.com/embed/OQQJrVgl6ys"></iframe>
+            <p>Quick test showing different stroke rate and pace combinations.</p>
+        </div>
 
         <!-- loader / uploader -->
         <div id="file-upload">
@@ -86,7 +96,7 @@
         <h2>Use cases</h2>
         <ul>
             <li>Coach wants to provide technique video <strong>and</strong>
-                pace / stroke / distance / time information.</li>
+                show pace / stroke / distance / time information.</li>
             <li>Athlete wants to compare old and recent technique sessions
                 <strong>simultaneously</strong> with pace / stroke / distance
                 / time information.</li>
@@ -127,8 +137,9 @@
         <h2>FAQ</h2>
         <dl>
             <dt>How can I see other variables, like average pace?</dt>
-            <dd>The Concept2 format for .csv is limited to elapsed time,
-                distance, instantaneous pace, watts and cals/hr.</dd>
+            <dd>The Concept2 format for .csv is limited to elapsed time, stroke
+                rate, instantaneous pace, distance, heart rate, watts and
+                calories per hour.</dd>
 
             <dt>But you can calculate average pace (and others) from those variables!</dt>
             <dd>Yup, this is on the list of things to fix.</dd>
@@ -136,6 +147,10 @@
             <dt>The output video format sucks. Can you change it?</dt>
             <dd>Yup, this is on the list of things to fix. If you have suggestions
                 please pass them along.</dd>
+
+            <dt>Why would I use this over &lt;<i>other software</i>&gt;?</dt>
+            <dd>This handles (almost) everything in-browser. Feel free to use something
+                else if this doesn't fit your needs.</dd>
 
             <dt>Does this handle intervals?</dt>
             <dd>Yup.</dd>
@@ -161,8 +176,11 @@
             <dd>Yup:
                 <ul>
                     <li>The frame where the numbers change from zero should be synced
-                        to match the <i>end of your first (possibly <strong>second</strong>l
-                        actual stroke</i>.</li>
+                        to match the <i>end of your first (possibly
+                            <strong>second</strong>) actual stroke</i>. This is
+                        because the rower / SkiErg won't necessarily register
+                        your first stroke, espectially if you start
+                    rowing from the main menu screen.</li>
                     <li>The last frame of of numbers should be synced to
                         match the <i>end of your last actual stroke</i>.</li>
                 </ul>
